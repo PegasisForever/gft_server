@@ -3,6 +3,7 @@ var multer = require('multer');
 var mysql = require('mysql');
 var https = require('https');
 var fs = require('fs');
+var net = require('net');
 var get_sql_connection = require("./get_sql_connection.js");
 var bodyParser = require('body-parser');
 const privateKey = fs.readFileSync('/etc/letsencrypt/live/test.pegasis.site/privkey.pem', 'utf8');
@@ -63,3 +64,24 @@ app.post("/new_device", upload.none(), function (req, res) {
 httpsServer.listen(4388, function() {
     console.log('HTTPS Server is running on: http://localhost:4388');
 });
+
+net.createServer(function(sock) {
+    console.log('CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort);
+
+    sock.on('data', function(data) {
+        console.log('DATA ' + sock.remoteAddress + ': ' + data);
+    });
+
+    sock.on('close', function(data) {
+        console.log('CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort);
+    });
+
+    setTimeout(function(){
+        sock.write(JSON.stringify({
+            sender_name: "Levi's AMD",
+            file_name: "test file.svg"
+        }));
+        console.log("sent")
+    }, 5000);
+
+}).listen(4389);
